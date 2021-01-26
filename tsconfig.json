@@ -2,6 +2,7 @@
   "compilerOptions": {
     "sourceMap": false,
     "noImplicitAny": false,
+    "outDir": "./out",
     "module": "commonjs",
       "target": "es2015"
   },

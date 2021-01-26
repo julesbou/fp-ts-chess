@@ -1,10 +1,7 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.printBoard = exports.defaultBoard = void 0;
-const function_1 = require("fp-ts/function");
-const O = require("fp-ts/Option");
-const A = require("fp-ts/lib/Array");
-const blackPieces = {
+exports.defaultBoard = exports.pieceFromSquare = exports.Column = exports.Row = void 0;
+const whitePieces = {
     PAWN: '♟',
     ROOK: '♜',
     KNIGHT: '♞',
@@ -12,7 +9,7 @@ const blackPieces = {
     KING: '♚',
     QUEEN: '♛',
 };
-const whitePieces = {
+const blackPieces = {
     PAWN: '♙',
     ROOK: '♖',
     KNIGHT: '♘',
@@ -24,6 +21,16 @@ const pieces = {
     white: whitePieces,
     black: blackPieces,
 };
+exports.Row = {
+    get: (row) => Number(row) - 1,
+    reverseGet: (row) => String(row + 1),
+};
+exports.Column = {
+    get: (column) => 'abcdefgh'.split('').indexOf(column),
+    reverseGet: (column) => 'abcdefgh'.split('')[column],
+};
+const pieceFromSquare /*: string*/ = (square) => pieces[square.color][square.piece];
+exports.pieceFromSquare /*: string*/ = pieceFromSquare;
 exports.defaultBoard = {
     direction: 'white',
     squares: [
@@ -61,35 +68,3 @@ exports.defaultBoard = {
         { column: 'h', row: '1', piece: 'ROOK', color: 'white' },
     ],
 };
-const Row = {
-    get: (row) => Number(row) - 1,
-    reverseGet: (row) => String(row + 1),
-};
-const Column = {
-    get: (column) => 'abcdefgh'.split('').indexOf(column),
-    reverseGet: (column) => 'abcdefgh'.split('')[column],
-};
-const squareAt /*: O.Option<Square>*/ = (board, rowIndex, columnIndex) => {
-    return O.fromNullable(board.squares.find((square) => Column.get(square.column) === columnIndex &&
-        Row.get(square.row) === rowIndex));
-};
-const squareString /*: string*/ = (square) => pieces[square.color][square.piece];
-const printBoard = (board) => function_1.pipe(
-// generate empty board (8x8)
-A.range(1, 8), A.map(_ => A.replicate(8, '')), 
-// for each row
-A.mapWithIndex((row, pieces) => 
-// for each square of each row
-A.array.mapWithIndex(pieces, column => function_1.pipe(
-// put corresponding piece
-squareAt(board, row, column), O.fold(function_1.constant('.'), squareString)))), 
-// add row numbers 1/2/3/4..
-A.mapWithIndex(function_1.flow((rowIndex, row) => [Row.reverseGet(7 - rowIndex), ...row])), 
-// add column numbers a/b/c/d..
-(rows => [
-    ...rows,
-    [' ', ...A.range(0, 7).map(Column.reverseGet)],
-]), 
-// format as string
-A.map(a => a.join(' '))).join('\n');
-exports.printBoard = printBoard;

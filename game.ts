@@ -1,17 +1,13 @@
 import { createInterface } from 'readline'
-import { sequenceS } from 'fp-ts/Apply'
 import { log } from 'fp-ts/Console'
-import { flow } from 'fp-ts/function'
-import * as O from 'fp-ts/Option'
-import { pipe } from 'fp-ts/pipeable'
-import { randomInt } from 'fp-ts/Random'
+import { pipe, flow, constant } from 'fp-ts/function'
+import * as E from 'fp-ts/Either'
 import * as T from 'fp-ts/Task'
+import * as A from 'fp-ts/lib/Array'
+import * as O from 'fp-ts/Option'
 
-import { defaultBoard, printBoard } from './board'
-
-//
-// helpers
-//
+import { defaultBoard, Board, Square, Column, Row, pieceFromSquare } from './board'
+import { applyMove, Move, isColumn, isRow } from './move'
 
 // read from standard input
 const getStrLn: T.Task<string> = () =>
@@ -37,68 +33,86 @@ function ask(question: string): T.Task<string> {
   )
 }
 
-// get a random int between 1 and 5
-const random = T.fromIO(randomInt(1, 5))
-
-// parse a string to an integer
-function parse(s: string): O.Option<number> {
-  const i = +s
-  return isNaN(i) || i % 1 !== 0 ? O.none : O.some(i)
+function squareAt/*: O.Option<Square>*/(board: Board, rowIndex: number, columnIndex: number) {
+  return O.fromNullable(board.squares.find((square: Square) => 
+    Column.get(square.column) === columnIndex && 
+    Row.get(square.row) === rowIndex
+  ))
 }
 
-//
-// game
-//
-
-function shouldContinue(name: string): T.Task<boolean> {
+function printBoard(board: Board) {
   return pipe(
-    ask(`Do you want to continue, ${name} (y/n)?`),
-    T.chain((answer) => {
-      switch (answer.toLowerCase()) {
-        case 'y':
-          return T.of(true)
-        case 'n':
-          return T.of(false)
-        default:
-          return shouldContinue(name)
-      }
-    })
-  )
-}
+    // generate empty board (8x8 two-dimensional array)
+    A.range(1, 8),
+    A.map(_ => A.replicate(8, '')),
 
-// run `n` tasks in parallel
-const ado = sequenceS(T.task)
-
-function gameLoop(name: string): T.Task<void> {
-  return pipe(
-    ado({
-      secret: random,
-      guess: ask(`Dear ${name}, please guess a number from 1 to 5`)
-    }),
-    T.chain(({ secret, guess }) =>
-      pipe(
-        parse(guess),
+    // draw each piece
+    A.mapWithIndex((row, pieces) =>
+      A.array.mapWithIndex(pieces, column => pipe(
+        squareAt(board, 7 - row, column),
         O.fold(
-          () => putStrLn('You did not enter an integer!'),
-          (x) =>
-            x === secret
-              ? putStrLn(`You guessed right, ${name}!`)
-              : putStrLn(`You guessed wrong, ${name}! The number was: ${secret}`)
+          constant('.'),
+          pieceFromSquare
         )
+      ))
+    ),
+
+    // add row numbers 1/2/3/4..
+    A.mapWithIndex(
+      flow((rowIndex, row) => A.cons(Row.reverseGet(7 - rowIndex), row)),
+    ),
+
+    // add column numbers a/b/c/d..
+    (rows => A.snoc(rows,
+      [' ', ...A.range(0, 7).map(Column.reverseGet)],
+    )),
+
+    // format as string
+    A.map(a => a.join(' ')),
+  ).join('\n')
+}
+
+// parse a chess move
+function parse(s: string): E.Either<string, Move> {
+  const [fromColumn, fromRow, toColumn, toRow] = s.split('')
+  if (!isColumn(fromColumn) || !isRow(fromRow) || !isColumn(toColumn) || !isRow(toRow)) {
+    return E.left('Move is invalid!')
+  }
+  return E.right({ fromColumn, fromRow, toColumn, toRow })
+}
+
+// print board to the console
+const showBoard = flow(printBoard, str => `\n${str}\n`, log)
+
+
+function gameLoop(board: Board): T.Task<Board> {
+  return pipe(
+    flow(
+      showBoard(board), 
+      ask(`What is your move (eg: e2e4) ?`)
+    ),
+    T.chain(move => 
+      pipe(
+        parse(move),
+        E.fold(
+          (err) => pipe(
+            putStrLn(err),
+            T.apSecond(T.of(board)),
+          ),
+          (move: Move) =>
+            T.of(applyMove(move, board))
+          ,
+        ),
       )
     ),
-    T.chain(() => shouldContinue(name)),
-    T.chain((b) => (b ? gameLoop(name) : T.of(undefined)))
+    T.chain(gameLoop)
   )
 }
 
-const main: T.Task<void> = pipe(
-  ask('What is your name?'),
-  T.chainFirst((name) => putStrLn(`Hello, ${name} welcome to the game!`)),
-  T.chain(gameLoop)
-)
-
-console.log(printBoard(defaultBoard))
+const main: T.Task<Board> = flow(
+  putStrLn(`Welcome to the chess game!`),
+  () => gameLoop(defaultBoard),
+)()
 
 // tslint:disable-next-line: no-floating-promises
 main()

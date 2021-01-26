@@ -1,12 +1,12 @@
-import { pipe, flow, constant } from 'fp-ts/function'
 import { Iso } from 'monocle-ts/lib/Iso'
-import * as O from 'fp-ts/Option'
-import * as A from 'fp-ts/lib/Array'
 
-type Color = 'white' | 'black'
-type PieceType = 'PAWN' | 'ROOK' | 'KNIGHT' | 'BISHOP' | 'KING' | 'QUEEN'
-type Column = 'a' | 'b' | 'c' | 'd' | 'e' | 'f' | 'g' | 'h'
-type Row = '1' | '2' | '3' | '4' | '5' | '6' | '7' | '8'
+export type Color = 'white' | 'black'
+
+export type PieceType = 'PAWN' | 'ROOK' | 'KNIGHT' | 'BISHOP' | 'KING' | 'QUEEN'
+
+export type Column = 'a' | 'b' | 'c' | 'd' | 'e' | 'f' | 'g' | 'h'
+
+export type Row = '1' | '2' | '3' | '4' | '5' | '6' | '7' | '8'
 
 type PieceSet = {
   PAWN: string;
@@ -17,19 +17,19 @@ type PieceSet = {
   QUEEN: string;
 } & Record<PieceType, string> 
 
-type Square = {
+export type Square = {
   column: Column,
   row: Row,
   piece: keyof PieceSet;
   color: Color;
 }
 
-type Board = {
+export type Board = {
   direction: Color;
   squares: Square[];
 }
 
-const blackPieces: PieceSet = {
+const whitePieces: PieceSet = {
   PAWN: '♟',
   ROOK: '♜',
   KNIGHT: '♞',
@@ -38,7 +38,7 @@ const blackPieces: PieceSet = {
   QUEEN: '♛',
 }
 
-const whitePieces: PieceSet = {
+const blackPieces: PieceSet = {
   PAWN: '♙',
   ROOK: '♖',
   KNIGHT: '♘',
@@ -51,6 +51,18 @@ const pieces: Record<Color, PieceSet> = {
   white: whitePieces,
   black: blackPieces,
 } 
+
+export const Row: Iso<string, number> = {
+  get: (row: Row) => Number(row) - 1,
+  reverseGet: (row: number) => String(row + 1),
+}
+
+export const Column: Iso<string, number> = {
+  get: (column: Column) => 'abcdefgh'.split('').indexOf(column),
+  reverseGet: (column: number) => 'abcdefgh'.split('')[column],
+}
+
+export const pieceFromSquare/*: string*/ = (square: Square) => pieces[square.color][square.piece]
 
 export const defaultBoard: Board = {
   direction: 'white',
@@ -92,59 +104,3 @@ export const defaultBoard: Board = {
     { column: 'h', row: '1', piece: 'ROOK', color: 'white' },
   ],
 }
-
-const Row: Iso<string, number> = {
-  get: (row: Row) => Number(row) - 1,
-  reverseGet: (row: number) => String(row + 1),
-}
-
-const Column: Iso<string, number> = {
-  get: (column: Column) => 'abcdefgh'.split('').indexOf(column),
-  reverseGet: (column: number) => 'abcdefgh'.split('')[column],
-}
-
-const squareAt/*: O.Option<Square>*/ = (board: Board, rowIndex: number, columnIndex: number) => {
-  return O.fromNullable(board.squares.find((square: Square) => 
-    Column.get(square.column) === columnIndex && 
-    Row.get(square.row) === rowIndex
-  ))
-}
-
-const squareString/*: string*/ = (square: Square) => pieces[square.color][square.piece]
-
-export const printBoard = (board: Board) =>
-  pipe(
-    // generate empty board (8x8)
-    A.range(1, 8),
-    A.map(_ => A.replicate(8, '')),
-
-    // for each row
-    A.mapWithIndex((row, pieces) =>
-      // for each square of each row
-      A.array.mapWithIndex(pieces, column => pipe(
-        // put corresponding piece
-        squareAt(board, row, column),
-        O.fold(
-          constant('.'),
-          squareString
-        )
-      ))
-    ),
-
-    // add row numbers 1/2/3/4..
-    A.mapWithIndex(
-      flow(
-        (rowIndex, row) => [Row.reverseGet(7 - rowIndex), ...row],
-      )
-    ),
-
-    // add column numbers a/b/c/d..
-    (rows => [
-      ...rows, 
-      [' ', ...A.range(0, 7).map(Column.reverseGet)],
-    ]),
-
-    // format as string
-    A.map(a => a.join(' ')),
-
-  ).join('\n')
