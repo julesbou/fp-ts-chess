@@ -1,13 +1,14 @@
 import { createInterface } from 'readline'
 import { log } from 'fp-ts/Console'
 import { pipe, flow, constant } from 'fp-ts/function'
+import { split, join } from 'fp-ts-extras/lib/String'
 import * as E from 'fp-ts/Either'
 import * as T from 'fp-ts/Task'
 import * as A from 'fp-ts/lib/Array'
 import * as O from 'fp-ts/Option'
 
-import { defaultBoard, Board, Square, Column, Row, pieceFromSquare } from './board'
-import { applyMove, Move, isColumn, isRow } from './move'
+import { defaultBoard, Board, Square, Column, Row, isColumn, isRow, pieceFromSquare } from './board'
+import { applyMove, Move } from './move'
 
 // read from standard input
 const getStrLn: T.Task<string> = () =>
@@ -33,11 +34,13 @@ function ask(question: string): T.Task<string> {
   )
 }
 
-function squareAt/*: O.Option<Square>*/(board: Board, rowIndex: number, columnIndex: number) {
-  return O.fromNullable(board.squares.find((square: Square) => 
-    Column.get(square.column) === columnIndex && 
-    Row.get(square.row) === rowIndex
-  ))
+function squareAt(board: Board, row: Row, column: Column): O.Option<Square> {
+  return pipe(
+    board.squares,
+    A.findFirst((square: Square) => 
+      square.column === column && square.row === row
+    )
+  )
 }
 
 function printBoard(board: Board) {
@@ -49,7 +52,10 @@ function printBoard(board: Board) {
     // draw each piece
     A.mapWithIndex((row, pieces) =>
       A.array.mapWithIndex(pieces, column => pipe(
-        squareAt(board, 7 - row, column),
+        squareAt(board, 
+          Row.reverseGet(7 - row),
+          Column.reverseGet(column)
+        ),
         O.fold(
           constant('.'),
           pieceFromSquare
@@ -68,17 +74,24 @@ function printBoard(board: Board) {
     )),
 
     // format as string
-    A.map(a => a.join(' ')),
-  ).join('\n')
+    A.map(join(' ')),
+    join('\n')
+  )
 }
 
 // parse a chess move
-function parse(s: string): E.Either<string, Move> {
-  const [fromColumn, fromRow, toColumn, toRow] = s.split('')
-  if (!isColumn(fromColumn) || !isRow(fromRow) || !isColumn(toColumn) || !isRow(toRow)) {
-    return E.left('Move is invalid!')
-  }
-  return E.right({ fromColumn, fromRow, toColumn, toRow })
+function parse(input: string): E.Either<string, Move> {
+  return pipe(
+    input,
+    split(''),
+    ([fromColumn, fromRow, toColumn, toRow]) => (
+      { fromColumn, fromRow, toColumn, toRow } as Move
+    ),
+    E.fromPredicate(
+      (move) => isColumn(move.fromColumn) || isRow(move.fromRow) || isColumn(move.toColumn) || isRow(move.toRow),
+      () => 'Move is invalid!',
+    ),
+  )
 }
 
 // print board to the console

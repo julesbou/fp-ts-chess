@@ -52,17 +52,25 @@ const pieces: Record<Color, PieceSet> = {
   black: blackPieces,
 } 
 
-export const Row: Iso<string, number> = {
+export const Row: Iso<Row, number> = {
   get: (row: Row) => Number(row) - 1,
-  reverseGet: (row: number) => String(row + 1),
+  reverseGet: (row: number): Row => String(row + 1) as Row,
 }
 
-export const Column: Iso<string, number> = {
+export const Column: Iso<Column, number> = {
   get: (column: Column) => 'abcdefgh'.split('').indexOf(column),
-  reverseGet: (column: number) => 'abcdefgh'.split('')[column],
+  reverseGet: (column: number): Column => 'abcdefgh'.split('')[column] as Column,
 }
 
-export const pieceFromSquare/*: string*/ = (square: Square) => pieces[square.color][square.piece]
+export function isColumn (col: string): col is Column {
+  return 'abcdefgh'.split('').includes(col);
+}
+
+export function isRow (row: string): row is Row {
+  return '12345678'.split('').includes(row);
+}
+
+export const pieceFromSquare = (square: Square): string => pieces[square.color][square.piece]
 
 export const defaultBoard: Board = {
   direction: 'white',

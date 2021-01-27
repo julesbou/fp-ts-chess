@@ -1,6 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.defaultBoard = exports.pieceFromSquare = exports.Column = exports.Row = void 0;
+exports.defaultBoard = exports.pieceFromSquare = exports.isRow = exports.isColumn = exports.Column = exports.Row = void 0;
 const whitePieces = {
     PAWN: '♟',
     ROOK: '♜',
@@ -29,8 +29,16 @@ exports.Column = {
     get: (column) => 'abcdefgh'.split('').indexOf(column),
     reverseGet: (column) => 'abcdefgh'.split('')[column],
 };
-const pieceFromSquare /*: string*/ = (square) => pieces[square.color][square.piece];
-exports.pieceFromSquare /*: string*/ = pieceFromSquare;
+function isColumn(col) {
+    return 'abcdefgh'.split('').includes(col);
+}
+exports.isColumn = isColumn;
+function isRow(row) {
+    return '12345678'.split('').includes(row);
+}
+exports.isRow = isRow;
+const pieceFromSquare = (square) => pieces[square.color][square.piece];
+exports.pieceFromSquare = pieceFromSquare;
 exports.defaultBoard = {
     direction: 'white',
     squares: [

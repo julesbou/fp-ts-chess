@@ -3,6 +3,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 const readline_1 = require("readline");
 const Console_1 = require("fp-ts/Console");
 const function_1 = require("fp-ts/function");
+const String_1 = require("fp-ts-extras/lib/String");
 const E = require("fp-ts/Either");
 const T = require("fp-ts/Task");
 const A = require("fp-ts/lib/Array");
@@ -26,30 +27,25 @@ const putStrLn = function_1.flow(Console_1.log, T.fromIO);
 function ask(question) {
     return function_1.pipe(putStrLn(question), T.chain(() => getStrLn));
 }
-function squareAt /*: O.Option<Square>*/(board, rowIndex, columnIndex) {
-    return O.fromNullable(board.squares.find((square) => board_1.Column.get(square.column) === columnIndex &&
-        board_1.Row.get(square.row) === rowIndex));
+function squareAt(board, row, column) {
+    return function_1.pipe(board.squares, A.findFirst((square) => square.column === column && square.row === row));
 }
 function printBoard(board) {
     return function_1.pipe(
     // generate empty board (8x8 two-dimensional array)
     A.range(1, 8), A.map(_ => A.replicate(8, '')), 
     // draw each piece
-    A.mapWithIndex((row, pieces) => A.array.mapWithIndex(pieces, column => function_1.pipe(squareAt(board, 7 - row, column), O.fold(function_1.constant('.'), board_1.pieceFromSquare)))), 
+    A.mapWithIndex((row, pieces) => A.array.mapWithIndex(pieces, column => function_1.pipe(squareAt(board, board_1.Row.reverseGet(7 - row), board_1.Column.reverseGet(column)), O.fold(function_1.constant('.'), board_1.pieceFromSquare)))), 
     // add row numbers 1/2/3/4..
     A.mapWithIndex(function_1.flow((rowIndex, row) => A.cons(board_1.Row.reverseGet(7 - rowIndex), row))), 
     // add column numbers a/b/c/d..
     (rows => A.snoc(rows, [' ', ...A.range(0, 7).map(board_1.Column.reverseGet)])), 
     // format as string
-    A.map(a => a.join(' '))).join('\n');
+    A.map(String_1.join(' ')), String_1.join('\n'));
 }
 // parse a chess move
-function parse(s) {
-    const [fromColumn, fromRow, toColumn, toRow] = s.split('');
-    if (!move_1.isColumn(fromColumn) || !move_1.isRow(fromRow) || !move_1.isColumn(toColumn) || !move_1.isRow(toRow)) {
-        return E.left('Move is invalid!');
-    }
-    return E.right({ fromColumn, fromRow, toColumn, toRow });
+function parse(input) {
+    return function_1.pipe(input, String_1.split(''), ([fromColumn, fromRow, toColumn, toRow]) => ({ fromColumn, fromRow, toColumn, toRow }), E.fromPredicate((move) => board_1.isColumn(move.fromColumn) || board_1.isRow(move.fromRow) || board_1.isColumn(move.toColumn) || board_1.isRow(move.toRow), () => 'Move is invalid!'));
 }
 // print board to the console
 const showBoard = function_1.flow(printBoard, str => `\n${str}\n`, Console_1.log);

@@ -9,14 +9,6 @@ export interface Move {
   toRow: Row;
 }
 
-export function isColumn (col: string): col is Column {
-  return 'abcdefgh'.split('').includes(col);
-}
-
-export function isRow (row: string): row is Row {
-  return '12345678'.split('').includes(row);
-}
-
 export function applyMove(move: Move, board: Board): Board {  
 
   const getSquarePrism = (move: Move): Prism<Square, Square> => 
