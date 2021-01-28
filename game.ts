@@ -38,7 +38,8 @@ function squareAt(board: Board, row: Row, column: Column): O.Option<Square> {
   return pipe(
     board.squares,
     A.findFirst((square: Square) => 
-      square.column === column && square.row === row
+      square.column === column && 
+      square.row === row
     )
   )
 }
@@ -53,7 +54,7 @@ function printBoard(board: Board) {
     A.mapWithIndex((row, pieces) =>
       A.array.mapWithIndex(pieces, column => pipe(
         squareAt(board, 
-          Row.reverseGet(7 - row),
+          Row.reverseGet(row),
           Column.reverseGet(column)
         ),
         O.fold(
@@ -65,13 +66,14 @@ function printBoard(board: Board) {
 
     // add row numbers 1/2/3/4..
     A.mapWithIndex(
-      flow((rowIndex, row) => A.cons(Row.reverseGet(7 - rowIndex), row)),
+      flow((rowIndex, row) => A.cons(Row.reverseGet(rowIndex), row)),
     ),
 
     // add column numbers a/b/c/d..
-    (rows => A.snoc(rows,
-      [' ', ...A.range(0, 7).map(Column.reverseGet)],
-    )),
+    A.cons([' ', ...A.range(0, 7).map(Column.reverseGet)]),
+
+    // reverse board so first row is at bottom,
+    A.reverse,
 
     // format as string
     A.map(join(' ')),
