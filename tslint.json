@@ -1,0 +1,98 @@
+{
+  "extends": ["tslint-no-circular-imports"],
+  "rules": {
+    "no-circular-imports": [
+      true,
+      {
+        "search-depth-limit": 10
+      }
+    ],
+    "class-name": true,
+    "deprecation": true,
+    "curly": true,
+    "eofline": false,
+    "forin": true,
+    "indent": [true, "spaces"],
+    "label-position": true,
+    "max-line-length": [false, 140],
+    "no-any": true,
+    "no-arg": true,
+    "no-console": [true, "debug", "info", "time", "timeEnd", "trace"],
+    "no-construct": true,
+    "no-default-export": true,
+    "no-debugger": true,
+    "no-duplicate-variable": true,
+    "no-eval": true,
+    "no-trailing-whitespace": false,
+    "no-unused-variable": false,
+    "no-var-keyword": true,
+    "one-line": [true, "check-catch", "check-else", "check-whitespace"],
+    "radix": true,
+    "semicolon": [false, "always"],
+    "triple-equals": [true],
+    "variable-name": false,
+    "whitespace": [false, "check-branch", "check-decl", "check-operator", "check-separator"],
+    "no-inferred-empty-object-type": true,
+    "strict-type-predicates": [false],
+    "prefer-const": [true],
+    "prefer-readonly": [true],
+    "arrow-return-shorthand": [true, "multiline"],
+    "only-arrow-functions": [false],
+    "interface-over-type-literal": [true],
+    "no-angle-bracket-type-assertion": [true],
+    "no-unnecessary-callback-wrapper": [true],
+    "prefer-function-over-method": [true],
+    "prefer-template": [true],
+    "prefer-switch": [
+      true,
+      {
+        "min-cases": 2
+      }
+    ],
+    "cyclomatic-complexity": [true, 20],
+    "no-unsafe-finally": true,
+    "adjacent-overload-signatures": true,
+    "prefer-for-of": true,
+    "ban-types": [
+      true,
+      ["Object", "Use object instead."],
+      ["String", "Use 'string' instead."],
+      ["Number", "Use 'number' instead."],
+      ["Boolean", "Use 'boolean' instead."]
+    ],
+    "no-inferrable-types": true,
+    "no-invalid-template-strings": true,
+    "no-string-throw": true,
+    "member-ordering": {
+      "options": {
+        "order": "statics-first"
+      }
+    },
+    "no-internal-module": true,
+    "restrict-plus-operands": true,
+    "no-string-literal": false,
+    "unified-signatures": true,
+    "no-bitwise": true,
+    "no-empty": false,
+    "use-isnan": true,
+    "no-duplicate-imports": false,
+    "interface-name": false,
+    "no-unnecessary-qualifier": true,
+    "no-unbound-method": [true, "ignore-static"],
+    "number-literal-format": true,
+    "prefer-while": true,
+    "import-blacklist": [true, "aws-sdk", "funfix"],
+    "no-sparse-arrays": true,
+    "no-parameter-reassignment": true,
+    "jsx-no-multiline-js": false,
+    "jsx-no-lambda": false,
+    "no-conditional-assignment": true,
+    "no-unsafe-any": true,
+    "strict-boolean-expressions": true,
+    "jsx-wrap-multiline": false,
+    "strict-string-expressions": [true, { "allow-empty-types": false }]
+  },
+  "linterOptions": {
+    "exclude": ["**/node_modules/**/*", "__mocks__/**/*", "**/*.d.ts", "**/*.js"]
+  }
+}

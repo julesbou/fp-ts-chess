@@ -17,14 +17,14 @@ type PieceSet = {
   QUEEN: string;
 } & Record<PieceType, string> 
 
-export type Square = {
+export interface Square {
   column: Column,
   row: Row,
   piece: keyof PieceSet;
   color: Color;
 }
 
-export type Board = {
+export interface Board {
   direction: Color;
   squares: Square[];
 }
