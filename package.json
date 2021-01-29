@@ -2,7 +2,7 @@
   "scripts": {
     "build": "ncc build src/game.ts",
     "start": "node dist/index.js",
-    "lint": "tslint --project ./"
+    "lint": "tslint --project ./; eslint --fix src/*"
   },
   "dependencies": {
     "@types/node": "^14.14.22",
