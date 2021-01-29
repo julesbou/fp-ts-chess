@@ -94,9 +94,9 @@ function parse(input: string): E.Either<string, Move> {
       ({ fromColumn, fromRow, toColumn, toRow } as Move),
     E.fromPredicate(
       (move) =>
-        isColumn(move.fromColumn) ||
-        isRow(move.fromRow) ||
-        isColumn(move.toColumn) ||
+        isColumn(move.fromColumn) &&
+        isRow(move.fromRow) &&
+        isColumn(move.toColumn) &&
         isRow(move.toRow),
       () => "Move is invalid!"
     )
